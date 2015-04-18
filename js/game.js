@@ -16,6 +16,8 @@ var hills;
 var trees;
 
 var car;
+var car_height = 154;
+var car_width = 232;
 var player;
 
 var cursors;
@@ -164,7 +166,7 @@ function preload() {
     game.load.image('road_light', 'assets/road_light.png');
     game.load.image('road_dark', 'assets/road_dark.png');
     game.load.image('road_start', 'assets/road_start.png');
-    game.load.image('car', 'assets/car.png');
+    game.load.spritesheet('car', 'assets/car.png', car_width, car_height);
     game.load.image('car_shadow', 'assets/car_shadow.png');
     
 }
@@ -194,8 +196,9 @@ function create() {
     
     var car_shadow = game.cache.getImage('car_shadow');
     player = game.add.sprite((game_width - car_shadow.width) / 2, game_height - car_shadow.height - 5, 'car_shadow');
-    car = game.cache.getImage('car');
-    player = game.add.sprite((game_width - car.width) / 2, game_height - car.height - 10, 'car');
+    player = game.add.sprite((game_width - car_width) / 2, game_height - car_height - 10, 'car', 1);
+    
+    player.animations.add('driving', [0, 1], 10, true);
 }
 
 function update() {
@@ -215,6 +218,9 @@ function update() {
 
     // Move road but keep car in the middle
     if (z_speed > 0) {
+        player.animations.play('driving');
+        player.animations.getAnimation('driving').speed = 15 * (z_speed / z_max_speed);
+        
         if (cursors.right.isDown && x_pos > x_min_pos) {
             x_pos -= x_speed_inc * (z_speed / z_max_speed);
             if (x_pos < x_min_pos) {
@@ -228,10 +234,12 @@ function update() {
                 x_pos = x_max_pos;
             }
         }
+    } else {
+        player.animations.stop();        
     }
     
     // Bounce the car, based on the current speed
-    player.y = game_height - car.height - 25 - (5 * (z_speed / z_max_speed) * Math.random());
+    player.y = game_height - car_height - 25 - (5 * (z_speed / z_max_speed) * Math.random());
     
     // Render the road
     z_pos = (z_pos + z_speed);

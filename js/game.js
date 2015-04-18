@@ -143,7 +143,7 @@ function create_track() {
     
     // Leave the curve
     for (i = 0; i < 20; i++) {
-        var curve = ease_out(-50, 0, i / 20);
+        var curve = ease_out(-5, 0, i / 20);
         if (track.length % 2 < 1) {
             add_segment(curve, 0, 'road_light');
         } else {
@@ -265,7 +265,7 @@ function update() {
         bmd.copyRect(track[segment].texture, area, cur_x + cur_x_add + x_pos, y);
     }
 
-    hills.tilePosition.x = 0 + x_pos;        
+    hills.tilePosition.x += 0 - (z_speed / z_max_speed) * track[current_segment].curve;        
 }
 
 var game = new Phaser.Game(game_width, game_height, Phaser.AUTO, '', {

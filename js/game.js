@@ -1,4 +1,6 @@
 
+"use strict";
+
 var Phaser = Phaser;
 
 var game_width = 800;
@@ -32,19 +34,59 @@ var x_speed_inc = 8;
 var x_max_pos = 256;
 var x_min_pos = -256;
 
-var road_strip_size = 1024 * 8;
+var road_strip_size = 1024 * 4;
+
+
+// A track is a sequence of road strips, with 
+// x, y and z positions and which texture to use
+var track = [];
+var current_segment = 0;
+
+function add_segment(x, y, texture) {
+    var length = track.length;
+    track.push({
+        x: x,
+        y: y,
+        z: 0,// Not really used or?
+        texture: texture
+    });
+}
+
+function create_track() {
+    var i, j;
+    for (j = 0; j < 2; j++) {
+        add_segment(0, 0, 'road_light');
+    }
+    
+    // Just add a start line
+    for (j = 0; j < 2; j++) {
+        add_segment(0, 0, 'road_start');
+    }
+    
+    for (i = 0; i < 50; i++) {
+        for (j = 0; j < 2; j++) {
+            add_segment(0, 0, 'road_light');
+        }
+        for (j = 0; j < 2; j++) {
+            add_segment(0, 0, 'road_dark');
+        }
+    }
+}
 
 function preload() {
     game.load.image('sky', 'assets/sky2.png');
     game.load.image('hills', 'assets/hills.png');
     game.load.image('road_light', 'assets/road_light.png');
     game.load.image('road_dark', 'assets/road_dark.png');
+    game.load.image('road_start', 'assets/road_start.png');
     game.load.image('car', 'assets/car.png');
     game.load.image('car_shadow', 'assets/car_shadow.png');
     
 }
 
 function create() {
+    
+    create_track();
     
 	game.stage.backgroundColor = '#000000';
 
@@ -103,25 +145,38 @@ function update() {
     player.y = game_height - car.height - 25 - (5 * (z_speed / z_max_speed) * Math.random());
     
     // Render the road
-    z_pos = (z_pos + z_speed) % road_strip_size;
+    z_pos = (z_pos + z_speed);
+    if (z_pos > road_strip_size) {
+        // Next segment
+        current_segment += 1;
+        if (current_segment >= track.length) {
+            current_segment = 0;
+        }
+        z_pos = z_pos % road_strip_size;
+    }
     
-    var z = z_pos;
-    var z_inc = 1;
-    var z_cur = 0;
+    var z = z_pos, z_inc = 1, z_cur = 0, segment = current_segment;
     
-    for (var y = game_height-1; y >= 0; y--) {
+    area.y = game_height-1;
+    for (var y = game_height-1; y >= 0 && area.y > 215; y--) {
         area.y = y;
         z_cur += z_inc;
-        z = (z + z_cur) % road_strip_size;
-
-        if (z < (road_strip_size/2)) {
-            bmd.copyRect('road_dark', area, x_pos, y);
-        } else {
-            bmd.copyRect('road_light', area, x_pos, y);
+        z = (z + z_cur);
+        
+        if (z >road_strip_size) {
+            // Next segment
+            segment += 1;
+            if (segment >= track.length) {
+                segment = 0;
+            }
+            z = z % road_strip_size;
         }
+            
+        bmd.copyRect(track[segment].texture, area, x_pos, y);
     }
     
     hills.tilePosition.x = 0 + x_pos;
+        
 }
 
 var game = new Phaser.Game(game_width, game_height, Phaser.AUTO, '', {

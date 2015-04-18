@@ -11,7 +11,9 @@ var game_height = 600;
 var game;
 
 var sky;
+var clouds;
 var hills;
+var trees;
 
 var car;
 var player;
@@ -78,15 +80,6 @@ function create_track() {
         add_segment(0, 0, 'road_start');
     }
     
-//    for (i = 0; i < 50; i++) {
-//        for (j = 0; j < 2; j++) {
-//            add_segment(0, 0, 'road_light');
-//        }
-//        for (j = 0; j < 2; j++) {
-//            add_segment(0, 0, 'road_dark');
-//        }
-//    }
-    
     // Enter the curve
     for (i = 0; i < 40; i++) {
         var curve = ease_in(0, 10, i / 40);
@@ -99,9 +92,9 @@ function create_track() {
 
     for (i = 0; i < 50; i++) {
         if (track.length % 4 < 2) {
-            add_segment(0, 0, 'road_light');
+            add_segment(1, 0, 'road_light');
         } else {
-            add_segment(0, 0, 'road_dark');
+            add_segment(1, 0, 'road_dark');
         }
     }
     
@@ -124,8 +117,8 @@ function create_track() {
     }
 
     // Enter the curve
-    for (i = 0; i < 20; i++) {
-        var curve = ease_in(0, -10, i / 20);
+    for (i = 0; i < 30; i++) {
+        var curve = ease_in(0, -10, i / 30);
         if (track.length % 4 < 2) {
             add_segment(curve, 0, 'road_light');
         } else {
@@ -142,8 +135,8 @@ function create_track() {
     }
     
     // Leave the curve
-    for (i = 0; i < 20; i++) {
-        var curve = ease_out(-5, 0, i / 20);
+    for (i = 0; i < 40; i++) {
+        var curve = ease_out(-5, 0, i / 40);
         if (track.length % 2 < 1) {
             add_segment(curve, 0, 'road_light');
         } else {
@@ -151,12 +144,23 @@ function create_track() {
         }
     }
     
+    for (i = 0; i < 50; i++) {
+        for (j = 0; j < 2; j++) {
+            add_segment(0, 0, 'road_light');        
+        }
+        for (j = 0; j < 2; j++) {
+            add_segment(0, 0, 'road_dark');
+        }
+    }
     
+
 }
 
 function preload() {
     game.load.image('sky', 'assets/sky2.png');
     game.load.image('hills', 'assets/hills.png');
+    game.load.image('trees', 'assets/trees.png');
+    game.load.image('clouds', 'assets/clouds.png');
     game.load.image('road_light', 'assets/road_light.png');
     game.load.image('road_dark', 'assets/road_dark.png');
     game.load.image('road_start', 'assets/road_start.png');
@@ -172,8 +176,12 @@ function create() {
 	game.stage.backgroundColor = '#000000';
 
     sky = game.add.sprite(0, 0, 'sky');
+    var tmp_clouds = game.cache.getImage('clouds');
+    clouds = game.add.tileSprite(0, 0, tmp_clouds.width, tmp_clouds.height, 'clouds', 0);
     var tmp_hills = game.cache.getImage('hills');
     hills = game.add.tileSprite(0, 0, tmp_hills.width, tmp_hills.height, 'hills', 0);
+    var tmp_trees = game.cache.getImage('trees');
+    trees = game.add.tileSprite(0, 0, tmp_trees.width, tmp_trees.height, 'trees', 0);
 
 	bmd = game.make.bitmapData(game_width, game_height);
 	bmd.addToWorld();
@@ -265,7 +273,9 @@ function update() {
         bmd.copyRect(track[segment].texture, area, cur_x + cur_x_add + x_pos, y);
     }
 
-    hills.tilePosition.x += 0 - (z_speed / z_max_speed) * track[current_segment].curve;        
+    clouds.tilePosition.x += 0 - 0.5 * (z_speed / z_max_speed) * track[current_segment].curve;        
+    hills.tilePosition.x += 0 - 1.0 * (z_speed / z_max_speed) * track[current_segment].curve;        
+    trees.tilePosition.x += 0 - 2.0 * (z_speed / z_max_speed) * track[current_segment].curve;        
 }
 
 var game = new Phaser.Game(game_width, game_height, Phaser.AUTO, '', {

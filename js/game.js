@@ -240,8 +240,7 @@ function update() {
     
     area.y = game_height - 1;
     var cur_x = 0, cur_x_inc = 0;
-    cur_x_inc += track[segment].curve;
-    cur_x += cur_x_inc;
+    cur_x_inc = -track[segment].curve * (z / road_strip_size);
 
     for (var y = game_height - 1; y >= 0 && area.y > 215; y--) {
         area.y = y;

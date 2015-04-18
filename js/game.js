@@ -6,6 +6,9 @@ var game_height = 600;
 
 var game;
 
+var sky;
+var hills;
+
 var car;
 var player;
 
@@ -29,21 +32,27 @@ var x_speed_inc = 8;
 var x_max_pos = 256;
 var x_min_pos = -256;
 
-var road_strip_size = 1024*8
+var road_strip_size = 1024 * 8;
 
 function preload() {
+    game.load.image('sky', 'assets/sky2.png');
+    game.load.image('hills', 'assets/hills.png');
     game.load.image('road_light', 'assets/road_light.png');
     game.load.image('road_dark', 'assets/road_dark.png');
     game.load.image('car', 'assets/car.png');
+    game.load.image('car_shadow', 'assets/car_shadow.png');
     
 }
 
 function create() {
     
-	game.stage.backgroundColor = '#2d2d2d';
+	game.stage.backgroundColor = '#000000';
+
+    sky = game.add.sprite(0, 0, 'sky');
+    var tmp_hills = game.cache.getImage('hills');
+    hills = game.add.tileSprite(0, 0, tmp_hills.width, tmp_hills.height, 'hills', 0);
 
 	bmd = game.make.bitmapData(game_width, game_height);
-
 	bmd.addToWorld();
 
 	area = new Phaser.Rectangle(0, 0, game_width, 1);
@@ -52,6 +61,8 @@ function create() {
 
     speed_text = game.add.text(8, 8, 'speed: 0', { fontSize: '16px', fill: '#000' });
     
+    var car_shadow = game.cache.getImage('car_shadow');
+    player = game.add.sprite((game_width - car_shadow.width) / 2, game_height - car_shadow.height - 5, 'car_shadow');
     car = game.cache.getImage('car');
     player = game.add.sprite((game_width - car.width) / 2, game_height - car.height - 10, 'car');
 }
@@ -76,14 +87,14 @@ function update() {
         if (cursors.right.isDown && x_pos > x_min_pos) {
             x_pos -= x_speed_inc * (z_speed / z_max_speed);
             if (x_pos < x_min_pos) {
-                x_pos = x_min_pos
+                x_pos = x_min_pos;
             }
         }
 
         if (cursors.left.isDown && x_pos < x_max_pos) {
             x_pos += x_speed_inc * (z_speed / z_max_speed);
             if (x_pos > x_max_pos) {
-                x_pos = x_max_pos
+                x_pos = x_max_pos;
             }
         }
     }
@@ -109,6 +120,8 @@ function update() {
             bmd.copyRect('road_light', area, x_pos, y);
         }
     }
+    
+    hills.tilePosition.x = 0 + x_pos;
 }
 
 var game = new Phaser.Game(game_width, game_height, Phaser.AUTO, '', {

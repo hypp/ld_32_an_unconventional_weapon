@@ -31,10 +31,10 @@ var z_max_speed = 1024;
 
 var x_pos = 0;
 var x_speed_inc = 8;
-var x_max_pos = 256*2;
-var x_min_pos = -256*2;
+var x_max_pos = 256 * 2;
+var x_min_pos = -256 * 2;
 
-var road_strip_size = 1024 * 4;
+var road_strip_size = 1024*4;
 
 
 // A track is a sequence of road strips, with 
@@ -42,21 +42,21 @@ var road_strip_size = 1024 * 4;
 var track = [];
 var current_segment = 0;
 
-function ease_in(a,b,percent) { 
-    return a + (b-a)*Math.pow(percent,2);
+function ease_in(a, b, percent) {
+    return a + (b - a) * Math.pow(percent, 2);
 }
 
-function ease_out(a,b,percent) { 
-    return a + (b-a)*(1-Math.pow(1-percent,2));
+function ease_out(a, b, percent) {
+    return a + (b - a) * (1 - Math.pow(1 - percent, 2));
 }
 
-function ease_in_out(a,b,percent) { 
-    return a + (b-a)*((-Math.cos(percent*Math.PI)/2) + 0.5);
+function ease_in_out(a, b, percent) {
+    return a + (b - a) * ((-Math.cos(percent * Math.PI) / 2) + 0.5);
 }
 
-function add_segment(x, y, texture) {
+function add_segment(curve, y, texture) {
     track.push({
-        x: x,
+        curve: curve,
         y: y,
         z: 0,// Not really used or?
         texture: texture
@@ -85,68 +85,66 @@ function create_track() {
 //    }
     
     // Enter the curve
-    var x = 0;
-    for (i = 0; i < 40; i++) {
-        x = ease_in(0, 100, i/40);
-        if (track.length % 4 < 2) {
-            add_segment(x, 0, 'road_light');
-        } else {
-            add_segment(x, 0, 'road_dark');
-        }
-    }
+//    for (i = 0; i < 40; i++) {
+//        var curve = ease_in(0, 10, i / 40);
+//        if (track.length % 4 < 2) {
+//            add_segment(curve, 0, 'road_light');
+//        } else {
+//            add_segment(curve, 0, 'road_dark');
+//        }
+//    }
 
-    for (i = 0; i < 50; i++) {
-        if (track.length % 4 < 2) {
-            add_segment(x, 0, 'road_light');
-        } else {
-            add_segment(x, 0, 'road_dark');
-        }
-    }
+//    for (i = 0; i < 50; i++) {
+//        if (track.length % 4 < 2) {
+//            add_segment(0, 0, 'road_light');
+//        } else {
+//            add_segment(0, 0, 'road_dark');
+//        }
+//    }
     
     // Leave the curve
-    for (i = 0; i < 40; i++) {
-        x = ease_out(100, 0, i/40);
-        if (track.length % 4 < 2) {
-            add_segment(x, 0, 'road_light');
-        } else {
-            add_segment(x, 0, 'road_dark');
-        }
-    }
+//    for (i = 0; i < 40; i++) {
+//        var curve = ease_out(10, 0, i / 40);
+//        if (track.length % 4 < 2) {
+//            add_segment(curve, 0, 'road_light');
+//        } else {
+//            add_segment(curve, 0, 'road_dark');
+//        }
+//    }
 
-    for (i = 0; i < 50; i++) {
-        if (track.length % 4 < 2) {
-            add_segment(x, 0, 'road_light');
-        } else {
-            add_segment(x, 0, 'road_dark');
-        }
-    }
+//    for (i = 0; i < 50; i++) {
+//        if (track.length % 4 < 2) {
+//            add_segment(0, 0, 'road_light');
+//        } else {
+//            add_segment(0, 0, 'road_dark');
+//        }
+//    }
 
     // Enter the curve
-    var x = 0;
-    for (i = 0; i < 20; i++) {
-        x = ease_in(0, -100, i/20);
-        if (track.length % 4 < 2) {
-            add_segment(x, 0, 'road_light');
-        } else {
-            add_segment(x, 0, 'road_dark');
-        }
-    }
+//    for (i = 0; i < 20; i++) {
+//        var curve = ease_in(0, -10, i / 20);
+//        if (track.length % 4 < 2) {
+//            add_segment(curve, 0, 'road_light');
+//        } else {
+//            add_segment(curve, 0, 'road_dark');
+//        }
+//    }
 
-    for (i = 0; i < 50; i++) {
-        if (track.length % 4 < 2) {
-            add_segment(x, 0, 'road_light');
-        } else {
-            add_segment(x, 0, 'road_dark');
-        }
-    }
+//    for (i = 0; i < 50; i++) {
+//        if (track.length % 4 < 2) {
+//            add_segment(0, 0, 'road_light');
+//        } else {
+//            add_segment(0, 0, 'road_dark');
+//        }
+//    }
     
     // Leave the curve
     for (i = 0; i < 20; i++) {
-        x = ease_out(-100, 0, i/20);
+        var curve = ease_out(-5, 0, i / 20);
         if (track.length % 4 < 2) {
-            add_segment(x, 0, 'road_light');
+            add_segment(curve, 0, 'road_light');
         } else {
-            add_segment(x, 0, 'road_dark');
+            add_segment(curve, 0, 'road_dark');
         }
     }
     
@@ -237,22 +235,40 @@ function update() {
     
     var z = z_pos, z_inc = 1, z_cur = 0, segment = current_segment;
     
-    area.y = game_height-1;
-    for (var y = game_height-1; y >= 0 && area.y > 215; y--) {
+    area.y = game_height - 1;
+    var cur_x = 0;
+    var cur_x_wanted = 0;
+    var cur_x_inc = 0;
+    cur_x = cur_x_inc;
+    cur_x_inc += track[segment].curve;
+
+    var cur_x_add = 0;
+    var next_x = cur_x + cur_x_inc;
+
+    for (var y = game_height - 1; y >= 0 && area.y > 215; y--) {
         area.y = y;
         z_cur += z_inc;
         z = (z + z_cur);
         
-        if (z >road_strip_size) {
+        if (z > road_strip_size) {
+            cur_x += cur_x_inc;
+            cur_x_inc += track[segment].curve;
             // Next segment
             segment += 1;
             if (segment >= track.length) {
                 segment = 0;
             }
+            
+            next_x = cur_x + cur_x_inc;
+            
             z = z % road_strip_size;
         }
+
+        var proportion = z / road_strip_size;
+        cur_x_add = cur_x_inc * proportion;
             
-        bmd.copyRect(track[segment].texture, area, x_pos - track[segment].x, y);
+//        bmd.copyRect(track[segment].texture, area, x_pos - track[segment].x, y);
+        bmd.copyRect(track[segment].texture, area, cur_x + cur_x_add, y);
     }
     
     hills.tilePosition.x = 0 + x_pos;

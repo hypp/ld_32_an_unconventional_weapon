@@ -18,12 +18,14 @@ var trees;
 var car;
 var car_height = 154;
 var car_width = 232;
+
+var bird;
+var bird_width = 40;
+var bird_height = 23
+
 var player;
 
 var cursors;
-
-var score = 0;
-var scoreText;
 
 var speed_text;
 
@@ -43,6 +45,7 @@ var x_min_pos = -256 * 2;
 
 var road_strip_size = 1024 * 4;
 
+var emitter;
 
 // A track is a sequence of road strips, with 
 // x, y and z positions and which texture to use
@@ -168,6 +171,8 @@ function preload() {
     game.load.image('road_start', 'assets/road_start.png');
     game.load.spritesheet('car', 'assets/car.png', car_width, car_height);
     game.load.image('car_shadow', 'assets/car_shadow.png');
+    game.load.image('smoke', 'assets/smoke.png');
+    game.load.spritesheet('bird', 'assets/bird.png', bird_width, bird_height);
     
 }
 
@@ -199,6 +204,30 @@ function create() {
     player = game.add.sprite((game_width - car_width) / 2, game_height - car_height - 10, 'car', 1);
     
     player.animations.add('driving', [0, 1], 10, true);
+    
+    emitter = game.add.emitter(0, 0, 100);
+    
+    emitter.makeParticles('smoke');
+
+    // Emitter should not move
+    emitter.setXSpeed(-50, 50);
+    emitter.setYSpeed(0, 0);
+
+    emitter.setRotation(-50, 50);
+    // Go from transparent to solid in 3000 ms
+    emitter.setAlpha(0.1, 1, 3000);
+    // Go from small to large in 2000 ms
+    emitter.setScale(0.4, 2, 0.4, 2, 6000, Phaser.Easing.Quintic.Out);
+    // 
+    emitter.gravity = -100;
+
+    emitter.x = player.x + car_width - 32;
+    emitter.y = player.y + car_height - 32;
+    
+    bird = game.add.sprite(50, 100, 'bird', 1);
+    bird.animations.add('flap', [0, 1, 2, 1], 4, true);
+    bird.animations.play('flap');
+
 }
 
 function update() {
@@ -218,9 +247,18 @@ function update() {
 
     // Move road but keep car in the middle
     if (z_speed > 0) {
+        // Spew smoke
+        if (!emitter.on) {
+            emitter.start(false, 4000, 500);
+        }
+        
+        emitter.frequency =  50 + 1000 * (1 - (z_speed / z_max_speed));
+        
+        // Animate car
         player.animations.play('driving');
         player.animations.getAnimation('driving').speed = 15 * (z_speed / z_max_speed);
         
+        // Check for movement in x and y
         if (cursors.right.isDown && x_pos > x_min_pos) {
             x_pos -= x_speed_inc * (z_speed / z_max_speed);
             if (x_pos < x_min_pos) {
@@ -235,6 +273,8 @@ function update() {
             }
         }
     } else {
+        emitter.on = false;
+        
         player.animations.stop();        
     }
     
@@ -283,7 +323,9 @@ function update() {
 
     clouds.tilePosition.x += 0 - 0.5 * (z_speed / z_max_speed) * track[current_segment].curve;        
     hills.tilePosition.x += 0 - 1.0 * (z_speed / z_max_speed) * track[current_segment].curve;        
-    trees.tilePosition.x += 0 - 2.0 * (z_speed / z_max_speed) * track[current_segment].curve;        
+    trees.tilePosition.x += 0 - 2.0 * (z_speed / z_max_speed) * track[current_segment].curve;       
+    emitter.x = player.x + car_width - 32;
+    emitter.y = player.y + car_height - 32;
 }
 
 var game = new Phaser.Game(game_width, game_height, Phaser.AUTO, '', {

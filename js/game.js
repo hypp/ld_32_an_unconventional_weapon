@@ -1,6 +1,8 @@
 
 "use strict";
 
+// Salamina nr 33
+
 var Phaser = Phaser;
 
 var game_width = 800;
@@ -29,12 +31,13 @@ var z_speed = 0;
 var z_speed_inc = 8;
 var z_max_speed = 1024;
 
+
 var x_pos = 0;
 var x_speed_inc = 8;
 var x_max_pos = 256 * 2;
 var x_min_pos = -256 * 2;
 
-var road_strip_size = 1024*4;
+var road_strip_size = 1024 * 4;
 
 
 // A track is a sequence of road strips, with 
@@ -85,63 +88,63 @@ function create_track() {
 //    }
     
     // Enter the curve
-//    for (i = 0; i < 40; i++) {
-//        var curve = ease_in(0, 10, i / 40);
-//        if (track.length % 4 < 2) {
-//            add_segment(curve, 0, 'road_light');
-//        } else {
-//            add_segment(curve, 0, 'road_dark');
-//        }
-//    }
+    for (i = 0; i < 40; i++) {
+        var curve = ease_in(0, 10, i / 40);
+        if (track.length % 4 < 2) {
+            add_segment(curve, 0, 'road_light');
+        } else {
+            add_segment(curve, 0, 'road_dark');
+        }
+    }
 
-//    for (i = 0; i < 50; i++) {
-//        if (track.length % 4 < 2) {
-//            add_segment(0, 0, 'road_light');
-//        } else {
-//            add_segment(0, 0, 'road_dark');
-//        }
-//    }
+    for (i = 0; i < 50; i++) {
+        if (track.length % 4 < 2) {
+            add_segment(0, 0, 'road_light');
+        } else {
+            add_segment(0, 0, 'road_dark');
+        }
+    }
     
     // Leave the curve
-//    for (i = 0; i < 40; i++) {
-//        var curve = ease_out(10, 0, i / 40);
-//        if (track.length % 4 < 2) {
-//            add_segment(curve, 0, 'road_light');
-//        } else {
-//            add_segment(curve, 0, 'road_dark');
-//        }
-//    }
+    for (i = 0; i < 40; i++) {
+        var curve = ease_out(10, 0, i / 40);
+        if (track.length % 4 < 2) {
+            add_segment(curve, 0, 'road_light');
+        } else {
+            add_segment(curve, 0, 'road_dark');
+        }
+    }
 
-//    for (i = 0; i < 50; i++) {
-//        if (track.length % 4 < 2) {
-//            add_segment(0, 0, 'road_light');
-//        } else {
-//            add_segment(0, 0, 'road_dark');
-//        }
-//    }
+    for (i = 0; i < 50; i++) {
+        if (track.length % 4 < 2) {
+            add_segment(0, 0, 'road_light');
+        } else {
+            add_segment(0, 0, 'road_dark');
+        }
+    }
 
     // Enter the curve
-//    for (i = 0; i < 20; i++) {
-//        var curve = ease_in(0, -10, i / 20);
-//        if (track.length % 4 < 2) {
-//            add_segment(curve, 0, 'road_light');
-//        } else {
-//            add_segment(curve, 0, 'road_dark');
-//        }
-//    }
+    for (i = 0; i < 20; i++) {
+        var curve = ease_in(0, -10, i / 20);
+        if (track.length % 4 < 2) {
+            add_segment(curve, 0, 'road_light');
+        } else {
+            add_segment(curve, 0, 'road_dark');
+        }
+    }
 
-//    for (i = 0; i < 50; i++) {
-//        if (track.length % 4 < 2) {
-//            add_segment(0, 0, 'road_light');
-//        } else {
-//            add_segment(0, 0, 'road_dark');
-//        }
-//    }
+    for (i = 0; i < 50; i++) {
+        if (track.length % 4 < 2) {
+            add_segment(0, 0, 'road_light');
+        } else {
+            add_segment(0, 0, 'road_dark');
+        }
+    }
     
     // Leave the curve
     for (i = 0; i < 20; i++) {
-        var curve = ease_out(-5, 0, i / 20);
-        if (track.length % 4 < 2) {
+        var curve = ease_out(-50, 0, i / 20);
+        if (track.length % 2 < 1) {
             add_segment(curve, 0, 'road_light');
         } else {
             add_segment(curve, 0, 'road_dark');
@@ -218,7 +221,7 @@ function update() {
             }
         }
     }
-
+    
     // Bounce the car, based on the current speed
     player.y = game_height - car.height - 25 - (5 * (z_speed / z_max_speed) * Math.random());
     
@@ -236,14 +239,9 @@ function update() {
     var z = z_pos, z_inc = 1, z_cur = 0, segment = current_segment;
     
     area.y = game_height - 1;
-    var cur_x = 0;
-    var cur_x_wanted = 0;
-    var cur_x_inc = 0;
-    cur_x = cur_x_inc;
+    var cur_x = 0, cur_x_inc = 0;
     cur_x_inc += track[segment].curve;
-
-    var cur_x_add = 0;
-    var next_x = cur_x + cur_x_inc;
+    cur_x += cur_x_inc;
 
     for (var y = game_height - 1; y >= 0 && area.y > 215; y--) {
         area.y = y;
@@ -259,20 +257,16 @@ function update() {
                 segment = 0;
             }
             
-            next_x = cur_x + cur_x_inc;
-            
             z = z % road_strip_size;
         }
 
         var proportion = z / road_strip_size;
-        cur_x_add = cur_x_inc * proportion;
+        var cur_x_add = cur_x_inc * proportion;
             
-//        bmd.copyRect(track[segment].texture, area, x_pos - track[segment].x, y);
-        bmd.copyRect(track[segment].texture, area, cur_x + cur_x_add, y);
+        bmd.copyRect(track[segment].texture, area, cur_x + cur_x_add + x_pos, y);
     }
-    
-    hills.tilePosition.x = 0 + x_pos;
-        
+
+    hills.tilePosition.x = 0 + x_pos;        
 }
 
 var game = new Phaser.Game(game_width, game_height, Phaser.AUTO, '', {

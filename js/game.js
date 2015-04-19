@@ -111,7 +111,7 @@ function create_track() {
     }
     
     // Leave the curve
-    for (i = 0; i < 40; i + 1) {
+    for (i = 0; i < 40; i += 1) {
         curve = ease_out(10, 0, i / 40);
         if (track.length % 4 < 2) {
             add_segment(curve, 0, 'road_light');
@@ -200,11 +200,11 @@ function preload() {
 
 function create() {
     
-    create_track();
-    
     game.physics.startSystem(Phaser.Physics.ARCADE);
 	game.stage.backgroundColor = '#000000';
 
+    create_track();
+    
     sky = game.add.sprite(0, 0, 'sky');
     var tmp_clouds = game.cache.getImage('clouds');
     clouds = game.add.tileSprite(0, 0, tmp_clouds.width, tmp_clouds.height, 'clouds', 0);
@@ -235,8 +235,17 @@ function create() {
     l_bird.mol = {};
     l_bird.mol.life = 0;
     game.physics.enable(l_bird, Phaser.Physics.ARCADE);
-    restart_l_bird();
-        
+    restart_l_bird(l_bird);
+
+    r_bird = game.add.sprite(50, 100, 'bird', 1);
+    r_bird.animations.add('flap', [0, 1, 2, 1], 4, true);
+    r_bird.animations.play('flap');
+    r_bird.anchor.setTo(0.5);
+    r_bird.mol = {};
+    r_bird.mol.life = 0;
+    game.physics.enable(r_bird, Phaser.Physics.ARCADE);
+    restart_r_bird(r_bird);
+    
     game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN);
     
     smoke_emitter = game.add.emitter(0, 0, 100);
@@ -270,26 +279,48 @@ function create() {
     engine_roar = game.sound.add('engine_roar', 0.1);
 }
 
-function l_bird_move_right() {
-    l_bird.mol.tween = game.add.tween(l_bird).to({ x: (game_width - car_width) / 2 }, 5000, Phaser.Easing.Linear.Elastic, true);
-    l_bird.scale.x = 1;
-    l_bird.mol.tween.onComplete.addOnce(l_bird_move_left, this);
+function l_bird_move_right(bird) {
+    bird.mol.tween = game.add.tween(bird).to({ x: (game_width - car_width) / 2 }, 5000, Phaser.Easing.Linear.Elastic, true);
+    bird.scale.x = 1;
+    bird.mol.tween.onComplete.addOnce(l_bird_move_left, bird);
 }
 
-function l_bird_move_left() {
-    l_bird.mol.tween = game.add.tween(l_bird).to({ x: 0 }, 5000, Phaser.Easing.Linear.Elastic, true);
-    l_bird.scale.x = -1;
-    l_bird.mol.tween.onComplete.addOnce(l_bird_move_right, this);
+function l_bird_move_left(bird) {
+    bird.mol.tween = game.add.tween(bird).to({ x: 0 }, 5000, Phaser.Easing.Linear.Elastic, true);
+    bird.scale.x = -1;
+    bird.mol.tween.onComplete.addOnce(l_bird_move_right, bird);
 }
 
-function restart_l_bird() {
-    if (l_bird.mol.tween != null) {
-        l_bird.mol.tween.stop();
+function restart_l_bird(bird) {
+    if (bird.mol.tween != null) {
+        bird.mol.tween.stop();
     }
-    l_bird.x = -bird_width;
-    l_bird.y = 100;
-    l_bird.mol.life = 0;
-    l_bird_move_right();
+    bird.x = -bird_width;
+    bird.y = 100;
+    bird.mol.life = 0;
+    l_bird_move_right(bird);
+}
+
+function r_bird_move_right(bird) {
+    bird.mol.tween = game.add.tween(bird).to({ x: game_width }, 5000, Phaser.Easing.Linear.Elastic, true);
+    bird.scale.x = 1;
+    bird.mol.tween.onComplete.addOnce(r_bird_move_left, bird);
+}
+
+function r_bird_move_left(bird) {
+    bird.mol.tween = game.add.tween(bird).to({ x: (game_width + car_width) / 2 }, 5000, Phaser.Easing.Linear.Elastic, true);
+    bird.scale.x = -1;
+    bird.mol.tween.onComplete.addOnce(r_bird_move_right, bird);
+}
+
+function restart_r_bird(bird) {
+    if (bird.mol.tween != null) {
+        bird.mol.tween.stop();
+    }
+    bird.x = game_width + bird_width;
+    bird.y = 100;
+    bird.mol.life = 0;
+    r_bird_move_left(bird);
 }
 
 function bird_and_smoke(a, b) {
@@ -308,7 +339,6 @@ function bird_and_smoke(a, b) {
         emitter.setRotation(-150, 150);
         emitter.setAlpha(1.0, 0.0, 1500);
         emitter.start(true, 3000, null, 100);
-//        emitter.explode(3000);
 
         for (i = 0; i < coughs.length; i += 1) {
             coughs[i].stop();
@@ -316,8 +346,12 @@ function bird_and_smoke(a, b) {
 
         game.sound.play('explosion', 1.0, false);
         
-        // TODO kill and respawn
-        restart_l_bird();
+        // kill and respawn
+        if (Math.floor(Math.random() * 2) == 0) {
+            restart_l_bird(a);
+        } else {
+            restart_r_bird(a);
+        }
     } else {
         var playing = false;
         for (i = 0; i < coughs.length; i += 1) {
@@ -337,6 +371,7 @@ function bird_and_smoke(a, b) {
 function update() {
     
     game.physics.arcade.overlap(l_bird, smoke_emitter, bird_and_smoke, null, this);
+    game.physics.arcade.overlap(r_bird, smoke_emitter, bird_and_smoke, null, this);
 
     if (cursors.up.isDown) {
         if (!engine_roar.isPlaying) {

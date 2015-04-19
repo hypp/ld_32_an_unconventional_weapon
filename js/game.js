@@ -462,6 +462,14 @@ function update() {
         bmd.copyRect(track[segment].texture, area, cur_x + cur_x_add, y);
     }
 
+    x_pos += (track[segment].curve * 0.1) * (z_speed / z_max_speed);
+    if (x_pos > x_max_pos) {
+        x_pos = x_max_pos;
+    }
+    if (x_pos < x_min_pos) {
+        x_pos = x_min_pos;
+    }
+    
     player.x = (game_width - car_width) / 2 - x_pos;
     shadow.x = (game_width - shadow.width) / 2 - x_pos;
     

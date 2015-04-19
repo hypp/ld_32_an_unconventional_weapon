@@ -1,8 +1,6 @@
 
 "use strict";
 
-// Salamina nr 33
-
 var Phaser = Phaser;
 
 var game_width = 800;
@@ -25,6 +23,7 @@ var bird_height = 23;
 var bird_max_life = 256;
 
 var coughs = [];
+var blood_group;
 
 var player;
 var shadow;
@@ -233,6 +232,9 @@ function create() {
         birds.push(bird);
     }
         
+    
+    blood_group = game.add.group();
+    
     var car_shadow = game.cache.getImage('car_shadow');
     shadow = game.add.sprite((game_width - car_shadow.width) / 2, game_height - car_shadow.height - 5, 'car_shadow');
     player = game.add.sprite((game_width - car_width) / 2, game_height - car_height - 10, 'car', 1);
@@ -347,6 +349,8 @@ function bird_and_player(bird, player) {
     emitter.setAlpha(1.0, 0.0, 1500);
     emitter.start(true, 3000, null, 100);
 
+    blood_group.add(emitter);
+    
     var i;
     for (i = 0; i < coughs.length; i += 1) {
         coughs[i].stop();

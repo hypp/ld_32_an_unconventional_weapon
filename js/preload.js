@@ -45,7 +45,6 @@ preload.prototype = {
         this.load_audio('engine_roar', 'engine_roar');
 	},
   	create: function(){
-//		this.game.state.start("GameTitle");
-		this.game.state.start("TheGame");
+		this.game.state.start("Intro");
 	}
 }

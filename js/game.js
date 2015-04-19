@@ -238,6 +238,7 @@ function create() {
     player = game.add.sprite((game_width - car_width) / 2, game_height - car_height - 10, 'car', 1);
     
     player.animations.add('driving', [0, 1], 10, true);
+    game.physics.enable(player, Phaser.Physics.ARCADE);
 
     game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN);
     
@@ -316,56 +317,54 @@ function restart_bird(bird) {
     }
 }
 
-function bird_and_smoke(a, b) {
+function bird_and_smoke(bird, smoke) {
     var i;
     
-    a.mol.life += 1;
-    a.y += 0.4;
+    bird.y += 0.4;
     
-    if (a.mol.life > bird_max_life) {
-        // make the bird explode
-        var emitter = game.add.emitter(a.x, a.y, 100);
-        emitter.makeParticles('blood');
-        emitter.minParticleSpeed.setTo(-200, -200);
-        emitter.maxParticleSpeed.setTo(200, 200);
-        emitter.gravity = 100;
-        emitter.setRotation(-150, 150);
-        emitter.setAlpha(1.0, 0.0, 1500);
-        emitter.start(true, 3000, null, 100);
-
-        for (i = 0; i < coughs.length; i += 1) {
-            coughs[i].stop();
-        }
-
-        game.sound.play('explosion', 1.0, false);
-        
-        // kill and respawn
-        restart_bird(a);
-    } else {
-        var playing = false;
-        for (i = 0; i < coughs.length; i += 1) {
-            if (coughs[i].isPlaying) {
-                playing = true;
-                break;
-            }
-        }
-        
-        if (!playing) {
-            var num = Math.floor(Math.random() * (coughs.length - 1));
-            coughs[num].play();
+    var playing = false;
+    for (i = 0; i < coughs.length; i += 1) {
+        if (coughs[i].isPlaying) {
+            playing = true;
+            break;
         }
     }
+
+    if (!playing) {
+        var num = Math.floor(Math.random() * (coughs.length - 1));
+        coughs[num].play();
+    }
+}
+
+function bird_and_player(bird, player) {
+    // make the bird explode
+    var emitter = game.add.emitter(bird.x, bird.y, 100);
+    emitter.makeParticles('blood');
+    emitter.minParticleSpeed.setTo(-200, -200);
+    emitter.maxParticleSpeed.setTo(200, 200);
+    emitter.gravity = 100;
+    emitter.setRotation(-150, 150);
+    emitter.setAlpha(1.0, 0.0, 1500);
+    emitter.start(true, 3000, null, 100);
+
+    var i;
+    for (i = 0; i < coughs.length; i += 1) {
+        coughs[i].stop();
+    }
+
+    game.sound.play('explosion', 1.0, false);
+
+    // kill and respawn
+    restart_bird(bird);
 }
 
 function update() {
     
     var i;
     for (i = 0; i < birds.length; i += 1) {
-        game.physics.arcade.overlap(birds[i], smoke_emitter, bird_and_smoke, null, this);
+        game.physics.arcade.overlap(birds[i], smoke_emitter, bird_and_smoke);
+        game.physics.arcade.overlap(birds[i], player, bird_and_player);
     }
-
-//    game.physics.arcade.overlap(l_bird, smoke_emitter, bird_and_smoke, null, this);
-//    game.physics.arcade.overlap(r_bird, smoke_emitter, bird_and_smoke, null, this);
 
     if (cursors.up.isDown) {
         if (!engine_roar.isPlaying) {

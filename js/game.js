@@ -525,9 +525,9 @@ function update() {
     
 }
 
-var game = new Phaser.Game(game_width, game_height, Phaser.AUTO, '', {
-        preload: preload,
-        create: create,
-        update: update
-    });
+//var game = new Phaser.Game(game_width, game_height, Phaser.AUTO, '', {
+//        preload: preload,
+//        create: create,
+//        update: update
+//    });
 

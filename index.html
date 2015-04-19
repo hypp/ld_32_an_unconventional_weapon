@@ -9,7 +9,20 @@
             margin: 0;
         }
     </style>
-	<script type="text/javascript" src="js/game.js"></script>
+	<script type="text/javascript" src="js/boot.js"></script>    
+	<script type="text/javascript" src="js/preload.js"></script>    
+	<script type="text/javascript" src="js/game2.js"></script>    
+    <script>
+			(function() {
+				var game = new Phaser.Game(800, 600, Phaser.AUTO, "game");
+				game.state.add("Boot",boot);
+				game.state.add("Preload",preload);
+				//game.state.add("GameTitle",gameTitle);
+				game.state.add("TheGame",theGame);
+				//game.state.add("GameOver",gameOver);
+				game.state.start("Boot");
+			})();    
+    </script>
 </head>
 <body>
 <h1>An Unconventional Weapon</h1>

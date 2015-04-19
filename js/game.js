@@ -19,9 +19,7 @@ var car;
 var car_height = 154;
 var car_width = 232;
 
-var l_bird;
-var r_bird;
-
+var birds = [];
 var bird_width = 40;
 var bird_height = 23;
 var bird_max_life = 256;
@@ -221,31 +219,26 @@ function create() {
     cursors = game.input.keyboard.createCursorKeys();
 
     speed_text = game.add.text(8, 8, 'speed: 0', { fontSize: '16px', fill: '#000' });
-    
+
+    var i;
+    for (i = 0; i < 10; i += 1) {
+        var bird = game.add.sprite(50, 100, 'bird', 1);
+        bird.animations.add('flap', [0, 1, 2, 1], 4, true);
+        bird.animations.play('flap');
+        bird.anchor.setTo(0.5);
+        bird.mol = {};
+        bird.mol.life = 0;
+        game.physics.enable(bird, Phaser.Physics.ARCADE);
+        restart_bird(bird);
+        birds.push(bird);
+    }
+        
     var car_shadow = game.cache.getImage('car_shadow');
     shadow = game.add.sprite((game_width - car_shadow.width) / 2, game_height - car_shadow.height - 5, 'car_shadow');
     player = game.add.sprite((game_width - car_width) / 2, game_height - car_height - 10, 'car', 1);
     
     player.animations.add('driving', [0, 1], 10, true);
 
-    l_bird = game.add.sprite(50, 100, 'bird', 1);
-    l_bird.animations.add('flap', [0, 1, 2, 1], 4, true);
-    l_bird.animations.play('flap');
-    l_bird.anchor.setTo(0.5);
-    l_bird.mol = {};
-    l_bird.mol.life = 0;
-    game.physics.enable(l_bird, Phaser.Physics.ARCADE);
-    restart_l_bird(l_bird);
-
-    r_bird = game.add.sprite(50, 100, 'bird', 1);
-    r_bird.animations.add('flap', [0, 1, 2, 1], 4, true);
-    r_bird.animations.play('flap');
-    r_bird.anchor.setTo(0.5);
-    r_bird.mol = {};
-    r_bird.mol.life = 0;
-    game.physics.enable(r_bird, Phaser.Physics.ARCADE);
-    restart_r_bird(r_bird);
-    
     game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN);
     
     smoke_emitter = game.add.emitter(0, 0, 100);
@@ -280,58 +273,46 @@ function create() {
 }
 
 function l_bird_move_right(bird) {
-    var tm = Math.random() * 2500 + 2500;
+    var tm = Math.random() * 3500 + 1500;
     bird.mol.tween = game.add.tween(bird).to({ x: (game_width - car_width) / 2 }, tm, Phaser.Easing.Linear.Elastic, true);
     bird.scale.x = 1;
     bird.mol.tween.onComplete.addOnce(l_bird_move_left, bird);
 }
 
 function l_bird_move_left(bird) {
-    var tm = Math.random() * 2500 + 2500;
+    var tm = Math.random() * 3500 + 1500;
     bird.mol.tween = game.add.tween(bird).to({ x: 0 }, tm, Phaser.Easing.Linear.Elastic, true);
     bird.scale.x = -1;
     bird.mol.tween.onComplete.addOnce(l_bird_move_right, bird);
 }
 
-function restart_l_bird(bird) {
-    if (bird.mol.tween != null) {
-        bird.mol.tween.stop();
-    }
-    bird.x = -bird_width;
-    bird.y = 100;
-    bird.mol.life = 0;
-    l_bird_move_right(bird);
-}
-
 function r_bird_move_right(bird) {
-    var tm = Math.random() * 2500 + 2500;
+    var tm = Math.random() * 3500 + 1500;
     bird.mol.tween = game.add.tween(bird).to({ x: game_width }, tm, Phaser.Easing.Linear.Elastic, true);
     bird.scale.x = 1;
     bird.mol.tween.onComplete.addOnce(r_bird_move_left, bird);
 }
 
 function r_bird_move_left(bird) {
-    var tm = Math.random() * 2500 + 2500;
+    var tm = Math.random() * 3500 + 1500;
     bird.mol.tween = game.add.tween(bird).to({ x: (game_width + car_width) / 2 }, tm, Phaser.Easing.Linear.Elastic, true);
     bird.scale.x = -1;
     bird.mol.tween.onComplete.addOnce(r_bird_move_right, bird);
 }
 
-function restart_r_bird(bird) {
+function restart_bird(bird) {
     if (bird.mol.tween != null) {
         bird.mol.tween.stop();
     }
-    bird.x = game_width + bird_width;
-    bird.y = 100;
+    bird.y = 100 + Math.random() * (game_height / 2);
     bird.mol.life = 0;
-    r_bird_move_left(bird);
-}
 
-function restart_bird(bird) {
     if (Math.floor(Math.random() * 2) == 0) {
-        restart_l_bird(bird);
+        bird.x = -bird_width;
+        l_bird_move_right(bird);
     } else {
-        restart_r_bird(bird);
+        bird.x = game_width + bird_width;
+        r_bird_move_left(bird);
     }
 }
 
@@ -378,8 +359,13 @@ function bird_and_smoke(a, b) {
 
 function update() {
     
-    game.physics.arcade.overlap(l_bird, smoke_emitter, bird_and_smoke, null, this);
-    game.physics.arcade.overlap(r_bird, smoke_emitter, bird_and_smoke, null, this);
+    var i;
+    for (i = 0; i < birds.length; i += 1) {
+        game.physics.arcade.overlap(birds[i], smoke_emitter, bird_and_smoke, null, this);
+    }
+
+//    game.physics.arcade.overlap(l_bird, smoke_emitter, bird_and_smoke, null, this);
+//    game.physics.arcade.overlap(r_bird, smoke_emitter, bird_and_smoke, null, this);
 
     if (cursors.up.isDown) {
         if (!engine_roar.isPlaying) {

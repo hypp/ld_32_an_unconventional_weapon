@@ -26,8 +26,11 @@ var bird_width = 40;
 var bird_height = 23;
 var bird_max_life = 256;
 
+var coughs = [];
+
 var player;
 var shadow;
+var engine_roar;
 
 var cursors;
 
@@ -165,6 +168,10 @@ function create_track() {
 
 }
 
+function load_audio(name, filename) {
+    game.load.audio(name, ['assets/' + filename + '.ogg', 'assets/' + filename + '.mp3', 'assets/' + filename + '.wav'], true);
+}
+
 function preload() {
     game.load.image('sky', 'assets/sky2.png');
     game.load.image('hills', 'assets/hills.png');
@@ -177,8 +184,17 @@ function preload() {
     game.load.image('car_shadow', 'assets/car_shadow.png');
     game.load.image('smoke', 'assets/smoke.png');
     game.load.spritesheet('bird', 'assets/bird.png', bird_width, bird_height);
-    game.load.audio('music', ['assets/ld32.ogg', 'assets/ld32.mp3', 'assets/ld32.wav'], true);
     game.load.image('blood', 'assets/blood.png');
+
+    load_audio('music', 'ld32');
+    
+    for (var i = 1; i < 13; i++) { 
+        var name = 'cough_' + i;
+        load_audio(name, name);
+    }
+    
+    load_audio('explosion', 'explosion');
+    load_audio('engine_roar', 'engine_roar');
 }
 
 function create() {
@@ -242,6 +258,14 @@ function create() {
     smoke_emitter.y = player.y + car_height - 32;
 
     game.sound.play('music', 0.8, true);
+
+    for (var i = 1; i < 13; i++) { 
+        var name = 'cough_' + i;
+        var cough = game.sound.add(name, 0.3);
+        coughs.push(cough);
+    }
+    
+    engine_roar = game.sound.add('engine_roar', 0.1);
 }
 
 function l_bird_move_right() {
@@ -267,7 +291,7 @@ function restart_l_bird() {
 }
 
 function bird_and_smoke(a, b) {
-    // TODO Play cough
+    
     a.mol.life++;
     a.y += 0.4;
     
@@ -283,10 +307,27 @@ function bird_and_smoke(a, b) {
         emitter.start(true, 3000, null, 100);
 //        emitter.explode(3000);
 
-        // TODO play "explosion"
+        for (var i = 0; i < coughs.length; i++) {
+            coughs[i].stop();
+        }
+
+        game.sound.play('explosion', 1.0, false);
+        
         // TODO kill and respawn
         restart_l_bird();
-
+    } else {
+        var playing = false;
+        for (var i = 0; i < coughs.length; i++) {
+            if (coughs[i].isPlaying) {
+                playing = true;
+                break;
+            }
+        }
+        
+        if (!playing) {
+            var num = Math.floor(Math.random() * (coughs.length-1));
+            coughs[num].play();
+        }
     }
 }
 
@@ -294,8 +335,14 @@ function update() {
     
     game.physics.arcade.overlap(l_bird, smoke_emitter, bird_and_smoke, null, this);
 
-    if (cursors.up.isDown && z_speed < z_max_speed) {
-        z_speed += z_speed_inc;
+    if (cursors.up.isDown) {
+        if (!engine_roar.isPlaying) {
+            engine_roar.play();
+        }
+
+        if (z_speed < z_max_speed) {
+            z_speed += z_speed_inc;
+        }
     }
 
     if (cursors.down.isDown && z_speed > 0) {

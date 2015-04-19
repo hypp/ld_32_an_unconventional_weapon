@@ -280,13 +280,15 @@ function create() {
 }
 
 function l_bird_move_right(bird) {
-    bird.mol.tween = game.add.tween(bird).to({ x: (game_width - car_width) / 2 }, 5000, Phaser.Easing.Linear.Elastic, true);
+    var tm = Math.random() * 2500 + 2500;
+    bird.mol.tween = game.add.tween(bird).to({ x: (game_width - car_width) / 2 }, tm, Phaser.Easing.Linear.Elastic, true);
     bird.scale.x = 1;
     bird.mol.tween.onComplete.addOnce(l_bird_move_left, bird);
 }
 
 function l_bird_move_left(bird) {
-    bird.mol.tween = game.add.tween(bird).to({ x: 0 }, 5000, Phaser.Easing.Linear.Elastic, true);
+    var tm = Math.random() * 2500 + 2500;
+    bird.mol.tween = game.add.tween(bird).to({ x: 0 }, tm, Phaser.Easing.Linear.Elastic, true);
     bird.scale.x = -1;
     bird.mol.tween.onComplete.addOnce(l_bird_move_right, bird);
 }
@@ -302,13 +304,15 @@ function restart_l_bird(bird) {
 }
 
 function r_bird_move_right(bird) {
-    bird.mol.tween = game.add.tween(bird).to({ x: game_width }, 5000, Phaser.Easing.Linear.Elastic, true);
+    var tm = Math.random() * 2500 + 2500;
+    bird.mol.tween = game.add.tween(bird).to({ x: game_width }, tm, Phaser.Easing.Linear.Elastic, true);
     bird.scale.x = 1;
     bird.mol.tween.onComplete.addOnce(r_bird_move_left, bird);
 }
 
 function r_bird_move_left(bird) {
-    bird.mol.tween = game.add.tween(bird).to({ x: (game_width + car_width) / 2 }, 5000, Phaser.Easing.Linear.Elastic, true);
+    var tm = Math.random() * 2500 + 2500;
+    bird.mol.tween = game.add.tween(bird).to({ x: (game_width + car_width) / 2 }, tm, Phaser.Easing.Linear.Elastic, true);
     bird.scale.x = -1;
     bird.mol.tween.onComplete.addOnce(r_bird_move_right, bird);
 }
@@ -321,6 +325,14 @@ function restart_r_bird(bird) {
     bird.y = 100;
     bird.mol.life = 0;
     r_bird_move_left(bird);
+}
+
+function restart_bird(bird) {
+    if (Math.floor(Math.random() * 2) == 0) {
+        restart_l_bird(bird);
+    } else {
+        restart_r_bird(bird);
+    }
 }
 
 function bird_and_smoke(a, b) {
@@ -347,11 +359,7 @@ function bird_and_smoke(a, b) {
         game.sound.play('explosion', 1.0, false);
         
         // kill and respawn
-        if (Math.floor(Math.random() * 2) == 0) {
-            restart_l_bird(a);
-        } else {
-            restart_r_bird(a);
-        }
+        restart_bird(a);
     } else {
         var playing = false;
         for (i = 0; i < coughs.length; i += 1) {

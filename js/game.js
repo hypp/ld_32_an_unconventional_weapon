@@ -375,11 +375,17 @@ function update() {
             engine_roar.play();
         }
 
-        if (z_speed < z_max_speed) {
-            z_speed += z_speed_inc;
+        z_speed += z_speed_inc;
+        if (z_speed > z_max_speed) {
+            z_speed = z_max_speed;
+        }
+    } else {
+        z_speed -= 1;
+        if (z_speed < 0) {
+            z_speed = 0;
         }
     }
-
+    
     if (cursors.down.isDown && z_speed > 0) {
         z_speed -= z_speed_inc;
         if (z_speed < 0) {

@@ -19,11 +19,15 @@ var car;
 var car_height = 154;
 var car_width = 232;
 
-var bird;
+var l_bird;
+var r_bird;
+
 var bird_width = 40;
-var bird_height = 23
+var bird_height = 23;
+var bird_max_life = 256;
 
 var player;
+var shadow;
 
 var cursors;
 
@@ -40,12 +44,12 @@ var z_max_speed = 1024;
 
 var x_pos = 0;
 var x_speed_inc = 8;
-var x_max_pos = 256 * 2;
-var x_min_pos = -256 * 2;
+var x_max_pos = 256;
+var x_min_pos = -256;
 
 var road_strip_size = 1024 * 4;
 
-var emitter;
+var smoke_emitter;
 
 // A track is a sequence of road strips, with 
 // x, y and z positions and which texture to use
@@ -151,7 +155,7 @@ function create_track() {
     
     for (i = 0; i < 50; i++) {
         for (j = 0; j < 2; j++) {
-            add_segment(0, 0, 'road_light');        
+            add_segment(0, 0, 'road_light');
         }
         for (j = 0; j < 2; j++) {
             add_segment(0, 0, 'road_dark');
@@ -173,13 +177,15 @@ function preload() {
     game.load.image('car_shadow', 'assets/car_shadow.png');
     game.load.image('smoke', 'assets/smoke.png');
     game.load.spritesheet('bird', 'assets/bird.png', bird_width, bird_height);
-    
+    game.load.audio('music', ['assets/ld32.ogg', 'assets/ld32.mp3', 'assets/ld32.wav'], true);
+    game.load.image('blood', 'assets/blood.png');
 }
 
 function create() {
     
     create_track();
     
+    game.physics.startSystem(Phaser.Physics.ARCADE);
 	game.stage.backgroundColor = '#000000';
 
     sky = game.add.sprite(0, 0, 'sky');
@@ -200,38 +206,94 @@ function create() {
     speed_text = game.add.text(8, 8, 'speed: 0', { fontSize: '16px', fill: '#000' });
     
     var car_shadow = game.cache.getImage('car_shadow');
-    player = game.add.sprite((game_width - car_shadow.width) / 2, game_height - car_shadow.height - 5, 'car_shadow');
+    shadow = game.add.sprite((game_width - car_shadow.width) / 2, game_height - car_shadow.height - 5, 'car_shadow');
     player = game.add.sprite((game_width - car_width) / 2, game_height - car_height - 10, 'car', 1);
     
     player.animations.add('driving', [0, 1], 10, true);
+
+    l_bird = game.add.sprite(50, 100, 'bird', 1);
+    l_bird.animations.add('flap', [0, 1, 2, 1], 4, true);
+    l_bird.animations.play('flap');
+    l_bird.anchor.setTo(0.5);
+    l_bird.mol = {};
+    l_bird.mol.life = 0;
+    game.physics.enable(l_bird, Phaser.Physics.ARCADE);
+    restart_l_bird();
+        
+    game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN);
     
-    emitter = game.add.emitter(0, 0, 100);
+    smoke_emitter = game.add.emitter(0, 0, 100);
     
-    emitter.makeParticles('smoke');
+    smoke_emitter.makeParticles('smoke');
 
     // Emitter should not move
-    emitter.setXSpeed(-50, 50);
-    emitter.setYSpeed(0, 0);
+    smoke_emitter.setXSpeed(-50, 50);
+    smoke_emitter.setYSpeed(0, 0);
 
-    emitter.setRotation(-50, 50);
+    smoke_emitter.setRotation(-50, 50);
     // Go from transparent to solid in 3000 ms
-    emitter.setAlpha(0.1, 1, 3000);
+    smoke_emitter.setAlpha(0.1, 0.8, 3000);
     // Go from small to large in 2000 ms
-    emitter.setScale(0.4, 2, 0.4, 2, 6000, Phaser.Easing.Quintic.Out);
+    smoke_emitter.setScale(0.4, 2, 0.4, 2, 6000, Phaser.Easing.Quintic.Out);
     // 
-    emitter.gravity = -100;
+    smoke_emitter.gravity = -100;
 
-    emitter.x = player.x + car_width - 32;
-    emitter.y = player.y + car_height - 32;
+    smoke_emitter.x = player.x + car_width - 32;
+    smoke_emitter.y = player.y + car_height - 32;
+
+    game.sound.play('music', 0.8, true);
+}
+
+function l_bird_move_right() {
+    l_bird.mol.tween = game.add.tween(l_bird).to({ x: (game_width - car_width) / 2 }, 5000, Phaser.Easing.Linear.Elastic, true);
+    l_bird.scale.x = 1;
+    l_bird.mol.tween.onComplete.addOnce(l_bird_move_left, this);
+}
+
+function l_bird_move_left() {
+    l_bird.mol.tween = game.add.tween(l_bird).to({ x: 0 }, 5000, Phaser.Easing.Linear.Elastic, true);
+    l_bird.scale.x = -1;
+    l_bird.mol.tween.onComplete.addOnce(l_bird_move_right, this);
+}
+
+function restart_l_bird() {
+    if (l_bird.mol.tween != null) {
+        l_bird.mol.tween.stop();
+    }
+    l_bird.x = -bird_width;
+    l_bird.y = 100;
+    l_bird.mol.life = 0;
+    l_bird_move_right();
+}
+
+function bird_and_smoke(a, b) {
+    // TODO Play cough
+    a.mol.life++;
+    a.y += 0.4;
     
-    bird = game.add.sprite(50, 100, 'bird', 1);
-    bird.animations.add('flap', [0, 1, 2, 1], 4, true);
-    bird.animations.play('flap');
+    if (a.mol.life > bird_max_life) {
+        // make the bird explode
+        var emitter = game.add.emitter(a.x, a.y, 100);
+        emitter.makeParticles('blood');
+        emitter.minParticleSpeed.setTo(-200, -200);
+        emitter.maxParticleSpeed.setTo(200, 200);
+        emitter.gravity = 100;
+        emitter.setRotation(-150, 150);
+        emitter.setAlpha(1.0, 0.0, 1500);
+        emitter.start(true, 3000, null, 100);
+//        emitter.explode(3000);
 
+        // TODO play "explosion"
+        // TODO kill and respawn
+        restart_l_bird();
+
+    }
 }
 
 function update() {
     
+    game.physics.arcade.overlap(l_bird, smoke_emitter, bird_and_smoke, null, this);
+
     if (cursors.up.isDown && z_speed < z_max_speed) {
         z_speed += z_speed_inc;
     }
@@ -248,11 +310,11 @@ function update() {
     // Move road but keep car in the middle
     if (z_speed > 0) {
         // Spew smoke
-        if (!emitter.on) {
-            emitter.start(false, 4000, 500);
+        if (!smoke_emitter.on) {
+            smoke_emitter.start(false, 4000, 500);
         }
         
-        emitter.frequency =  50 + 1000 * (1 - (z_speed / z_max_speed));
+        smoke_emitter.frequency =  50 + 1000 * (1 - (z_speed / z_max_speed));
         
         // Animate car
         player.animations.play('driving');
@@ -273,9 +335,9 @@ function update() {
             }
         }
     } else {
-        emitter.on = false;
+        smoke_emitter.on = false;
         
-        player.animations.stop();        
+        player.animations.stop();
     }
     
     // Bounce the car, based on the current speed
@@ -318,14 +380,18 @@ function update() {
         var proportion = z / road_strip_size;
         var cur_x_add = cur_x_inc * proportion;
             
-        bmd.copyRect(track[segment].texture, area, cur_x + cur_x_add + x_pos, y);
+        bmd.copyRect(track[segment].texture, area, cur_x + cur_x_add, y);
     }
 
+    player.x = (game_width - car_width) / 2 - x_pos;
+    shadow.x = (game_width - shadow.width) / 2 - x_pos;
+    
     clouds.tilePosition.x += 0 - 0.5 * (z_speed / z_max_speed) * track[current_segment].curve;        
     hills.tilePosition.x += 0 - 1.0 * (z_speed / z_max_speed) * track[current_segment].curve;        
     trees.tilePosition.x += 0 - 2.0 * (z_speed / z_max_speed) * track[current_segment].curve;       
-    emitter.x = player.x + car_width - 32;
-    emitter.y = player.y + car_height - 32;
+    smoke_emitter.x = player.x + car_width - 32;
+    smoke_emitter.y = player.y + car_height - 32;
+    
 }
 
 var game = new Phaser.Game(game_width, game_height, Phaser.AUTO, '', {

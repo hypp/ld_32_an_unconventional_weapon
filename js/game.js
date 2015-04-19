@@ -31,7 +31,10 @@ var engine_roar;
 
 var cursors;
 
+// HUD
 var speed_text;
+var fuel_text;
+var kill_text;
 
 var bmd;
 var area;
@@ -55,6 +58,12 @@ var smoke_emitter;
 // x, y and z positions and which texture to use
 var track = [];
 var current_segment = 0;
+
+// Score
+var fuel = 100;
+var fuel_consumtion = 1.5;
+var bird_energy_contents = 0.9;
+var bird_kills = 0;
 
 function ease_in(a, b, percent) {
     return a + (b - a) * Math.pow(percent, 2);
@@ -195,6 +204,13 @@ function preload() {
     load_audio('engine_roar', 'engine_roar');
 }
 
+function every_second() {
+    fuel -= fuel_consumtion * (z_speed / z_max_speed);
+    if (fuel < 0) {
+        fuel = 0;
+    }
+}
+
 function create() {
     
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -217,7 +233,9 @@ function create() {
     
     cursors = game.input.keyboard.createCursorKeys();
 
-    speed_text = game.add.text(8, 8, 'speed: 0', { fontSize: '16px', fill: '#000' });
+    speed_text = game.add.text(8, 8, 'speed: ' + z_speed, { fontSize: '16px', fill: '#000' });
+    fuel_text = game.add.text(8, 8 + 16, 'fuel reserve: ' + fuel, { fontSize: '16px', fill: '#000' });
+    kill_text = game.add.text(8, 8 + 16 + 16, 'kills: ' + bird_kills, { fontSize: '16px', fill: '#000' });
 
     var i;
     for (i = 0; i < 10; i += 1) {
@@ -226,7 +244,6 @@ function create() {
         bird.animations.play('flap');
         bird.anchor.setTo(0.5);
         bird.mol = {};
-        bird.mol.life = 0;
         game.physics.enable(bird, Phaser.Physics.ARCADE);
         restart_bird(bird);
         birds.push(bird);
@@ -265,7 +282,7 @@ function create() {
 
     game.sound.play('music', 0.8, true);
 
-    var i, name, cough;
+    var name, cough;
     for (i = 1; i < 13; i += 1) {
         name = 'cough_' + i;
         cough = game.sound.add(name, 0.3);
@@ -273,6 +290,10 @@ function create() {
     }
     
     engine_roar = game.sound.add('engine_roar', 0.1);
+    
+    var tm = game.time.create();
+    tm.loop(1000, every_second);
+    tm.start(2000);
 }
 
 function l_bird_move_right(bird) {
@@ -310,7 +331,7 @@ function restart_bird(bird) {
     bird.y = 100 + Math.random() * (game_height / 2);
     bird.mol.life = 0;
 
-    if (Math.floor(Math.random() * 2) == 0) {
+    if (Math.floor(Math.random() * 2) === 0) {
         bird.x = -bird_width;
         l_bird_move_right(bird);
     } else {
@@ -339,6 +360,10 @@ function bird_and_smoke(bird, smoke) {
 }
 
 function bird_and_player(bird, player) {
+    // Add score
+    fuel += bird_energy_contents;
+    bird_kills += 1;
+
     // make the bird explode
     var emitter = game.add.emitter(bird.x, bird.y, 100);
     emitter.makeParticles('blood');
@@ -363,11 +388,13 @@ function bird_and_player(bird, player) {
 }
 
 function update() {
-    
     var i;
     for (i = 0; i < birds.length; i += 1) {
         game.physics.arcade.overlap(birds[i], smoke_emitter, bird_and_smoke);
-        game.physics.arcade.overlap(birds[i], player, bird_and_player);
+        // Only check collisions if we are moving
+        if (z_speed > 0) {
+            game.physics.arcade.overlap(birds[i], player, bird_and_player);
+        }
     }
 
     if (cursors.up.isDown) {
@@ -393,7 +420,14 @@ function update() {
         }
     }
 
+    // Can't drive if out of fuel
+    if (fuel === 0) {
+        z_speed = 0;
+    }
+    
     speed_text.text = 'speed: ' + z_speed;
+    fuel_text.text = 'fuel reserve: ' + Math.floor(fuel);
+    kill_text.text = 'kills: ' + bird_kills;
 
     // Move road but keep car in the middle
     if (z_speed > 0) {
@@ -424,7 +458,7 @@ function update() {
         }
     } else {
         smoke_emitter.on = false;
-        
+
         player.animations.stop();
     }
     

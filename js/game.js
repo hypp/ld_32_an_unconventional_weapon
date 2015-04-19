@@ -18,7 +18,7 @@ var car_height = 154;
 var car_width = 232;
 
 var birds = [];
-var bird_width = 40;
+var bird_width = 42;
 var bird_height = 23;
 var bird_max_life = 256;
 
@@ -46,7 +46,7 @@ var z_max_speed = 1024;
 
 
 var x_pos = 0;
-var x_speed_inc = 8;
+var x_speed_inc = 2;
 var x_max_pos = 256;
 var x_min_pos = -256;
 
@@ -425,7 +425,7 @@ function update() {
         z_speed = 0;
     }
     
-    speed_text.text = 'speed: ' + z_speed;
+    speed_text.text = 'speed: ' + Math.floor(250 * (z_speed / z_max_speed));
     fuel_text.text = 'fuel reserve: ' + Math.floor(fuel);
     kill_text.text = 'kills: ' + bird_kills;
 
@@ -505,7 +505,7 @@ function update() {
         bmd.copyRect(track[segment].texture, area, cur_x + cur_x_add, y);
     }
 
-    x_pos += (track[segment].curve * 0.1) * (z_speed / z_max_speed);
+    x_pos += (track[segment].curve * 0.6) * (z_speed / z_max_speed);
     if (x_pos > x_max_pos) {
         x_pos = x_max_pos;
     }

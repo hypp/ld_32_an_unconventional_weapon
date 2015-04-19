@@ -81,20 +81,20 @@ function add_segment(curve, y, texture) {
 }
 
 function create_track() {
-    var i, j;
+    var i, j, curve;
 
-    for (j = 0; j < 2; j++) {
+    for (j = 0; j < 2; j += 1) {
         add_segment(0, 0, 'road_light');
     }
     
     // Just add a start line
-    for (j = 0; j < 2; j++) {
+    for (j = 0; j < 2; j += 1) {
         add_segment(0, 0, 'road_start');
     }
     
     // Enter the curve
-    for (i = 0; i < 40; i++) {
-        var curve = ease_in(0, 10, i / 40);
+    for (i = 0; i < 40; i += 1) {
+        curve = ease_in(0, 10, i / 40);
         if (track.length % 4 < 2) {
             add_segment(curve, 0, 'road_light');
         } else {
@@ -102,7 +102,7 @@ function create_track() {
         }
     }
 
-    for (i = 0; i < 50; i++) {
+    for (i = 0; i < 50; i += 1) {
         if (track.length % 4 < 2) {
             add_segment(1, 0, 'road_light');
         } else {
@@ -111,8 +111,8 @@ function create_track() {
     }
     
     // Leave the curve
-    for (i = 0; i < 40; i++) {
-        var curve = ease_out(10, 0, i / 40);
+    for (i = 0; i < 40; i + 1) {
+        curve = ease_out(10, 0, i / 40);
         if (track.length % 4 < 2) {
             add_segment(curve, 0, 'road_light');
         } else {
@@ -120,7 +120,7 @@ function create_track() {
         }
     }
 
-    for (i = 0; i < 50; i++) {
+    for (i = 0; i < 50; i += 1) {
         if (track.length % 4 < 2) {
             add_segment(0, 0, 'road_light');
         } else {
@@ -129,8 +129,8 @@ function create_track() {
     }
 
     // Enter the curve
-    for (i = 0; i < 30; i++) {
-        var curve = ease_in(0, -10, i / 30);
+    for (i = 0; i < 30; i += 1) {
+        curve = ease_in(0, -10, i / 30);
         if (track.length % 4 < 2) {
             add_segment(curve, 0, 'road_light');
         } else {
@@ -138,7 +138,7 @@ function create_track() {
         }
     }
 
-    for (i = 0; i < 50; i++) {
+    for (i = 0; i < 50; i += 1) {
         if (track.length % 4 < 2) {
             add_segment(0, 0, 'road_light');
         } else {
@@ -147,8 +147,8 @@ function create_track() {
     }
     
     // Leave the curve
-    for (i = 0; i < 40; i++) {
-        var curve = ease_out(-5, 0, i / 40);
+    for (i = 0; i < 40; i += 1) {
+        curve = ease_out(-5, 0, i / 40);
         if (track.length % 2 < 1) {
             add_segment(curve, 0, 'road_light');
         } else {
@@ -156,11 +156,11 @@ function create_track() {
         }
     }
     
-    for (i = 0; i < 50; i++) {
-        for (j = 0; j < 2; j++) {
+    for (i = 0; i < 50; i += 1) {
+        for (j = 0; j < 2; j += 1) {
             add_segment(0, 0, 'road_light');
         }
-        for (j = 0; j < 2; j++) {
+        for (j = 0; j < 2; j += 1) {
             add_segment(0, 0, 'road_dark');
         }
     }
@@ -188,8 +188,9 @@ function preload() {
 
     load_audio('music', 'ld32');
     
-    for (var i = 1; i < 13; i++) { 
-        var name = 'cough_' + i;
+    var i, name;
+    for (i = 1; i < 13; i += 1) {
+        name = 'cough_' + i;
         load_audio(name, name);
     }
     
@@ -259,9 +260,10 @@ function create() {
 
     game.sound.play('music', 0.8, true);
 
-    for (var i = 1; i < 13; i++) { 
-        var name = 'cough_' + i;
-        var cough = game.sound.add(name, 0.3);
+    var i, name, cough;
+    for (i = 1; i < 13; i += 1) {
+        name = 'cough_' + i;
+        cough = game.sound.add(name, 0.3);
         coughs.push(cough);
     }
     
@@ -291,8 +293,9 @@ function restart_l_bird() {
 }
 
 function bird_and_smoke(a, b) {
+    var i;
     
-    a.mol.life++;
+    a.mol.life += 1;
     a.y += 0.4;
     
     if (a.mol.life > bird_max_life) {
@@ -307,7 +310,7 @@ function bird_and_smoke(a, b) {
         emitter.start(true, 3000, null, 100);
 //        emitter.explode(3000);
 
-        for (var i = 0; i < coughs.length; i++) {
+        for (i = 0; i < coughs.length; i += 1) {
             coughs[i].stop();
         }
 
@@ -317,7 +320,7 @@ function bird_and_smoke(a, b) {
         restart_l_bird();
     } else {
         var playing = false;
-        for (var i = 0; i < coughs.length; i++) {
+        for (i = 0; i < coughs.length; i += 1) {
             if (coughs[i].isPlaying) {
                 playing = true;
                 break;
@@ -325,7 +328,7 @@ function bird_and_smoke(a, b) {
         }
         
         if (!playing) {
-            var num = Math.floor(Math.random() * (coughs.length-1));
+            var num = Math.floor(Math.random() * (coughs.length - 1));
             coughs[num].play();
         }
     }
@@ -404,10 +407,10 @@ function update() {
     var z = z_pos, z_inc = 1, z_cur = 0, segment = current_segment;
     
     area.y = game_height - 1;
-    var cur_x = 0, cur_x_inc = 0;
+    var y, cur_x = 0, cur_x_inc = 0;
     cur_x_inc = -track[segment].curve * (z / road_strip_size);
 
-    for (var y = game_height - 1; y >= 0 && area.y > 215; y--) {
+    for (y = game_height - 1; y >= 0 && area.y > 215; y -= 1) {
         area.y = y;
         z_cur += z_inc;
         z = (z + z_cur);
@@ -433,9 +436,10 @@ function update() {
     player.x = (game_width - car_width) / 2 - x_pos;
     shadow.x = (game_width - shadow.width) / 2 - x_pos;
     
-    clouds.tilePosition.x += 0 - 0.5 * (z_speed / z_max_speed) * track[current_segment].curve;        
-    hills.tilePosition.x += 0 - 1.0 * (z_speed / z_max_speed) * track[current_segment].curve;        
-    trees.tilePosition.x += 0 - 2.0 * (z_speed / z_max_speed) * track[current_segment].curve;       
+    clouds.tilePosition.x += 0 - 0.5 * (z_speed / z_max_speed) * track[current_segment].curve;
+    hills.tilePosition.x += 0 - 1.0 * (z_speed / z_max_speed) * track[current_segment].curve;
+    trees.tilePosition.x += 0 - 2.0 * (z_speed / z_max_speed) * track[current_segment].curve;
+
     smoke_emitter.x = player.x + car_width - 32;
     smoke_emitter.y = player.y + car_height - 32;
     
